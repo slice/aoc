@@ -16,9 +16,9 @@ object Day1 extends Day {
   }
 
   def part2: Int = {
-    input.flatMap(mass => {
+    input.map(mass => {
       lazy val stream: LazyList[Int] = fuel(mass) #:: stream.map(fuel)
-      stream.takeWhile(_ > 0).toList
+      stream.takeWhile(_ > 0).sum
     }).sum
   }
 }
