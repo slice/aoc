@@ -22,34 +22,34 @@ object Day2 extends Day {
 
   val part1Code = generateMemory(12, 2)
 
-  val state: Computer = State { case original @ Brain(memory, ip, halted) =>
-    // TODO: this is incredibly messy
+  val state: Computer = State {
+    case original @ Brain(memory, ip, halted) =>
+      // TODO: this is incredibly messy
 
-    if (halted) {
-      (original, ())
-    } else {
-      def binaryOp(f: (Int, Int) => Int): Memory =
-        memory.drop(ip + 1 /* skip opcode */) match {
-          case leftAddress :: rightAddress :: targetAddress :: _ =>
-            (memory.lift(leftAddress), memory.lift(rightAddress)) match {
-              case (Some(left), Some(right)) =>
-                memory.updated(targetAddress, f(left, right))
-              case _ => memory
-            }
-          case _ => memory
-        }
-
-      if (memory(ip) == 99) {
-        (Brain(memory, ip, halted = true), ())
+      if (halted) {
+        (original, ())
       } else {
-        val newMemory = memory(ip) match {
-          case 1 => binaryOp(_ + _)
-          case 2 => binaryOp(_ * _)
+        def binaryOp(f: (Int, Int) => Int): Memory = {
+          val leftAddress :: rightAddress :: targetAddress :: _ =
+            memory.drop(ip + 1 /* skip opcode */).take(3)
+
+          memory.updated(
+            targetAddress,
+            f(memory(leftAddress), memory(rightAddress))
+          )
         }
 
-        (Brain(newMemory, ip + 4), ())
+        if (memory(ip) == 99) {
+          (Brain(memory, ip, halted = true), ())
+        } else {
+          val newMemory = memory(ip) match {
+            case 1 => binaryOp(_ + _)
+            case 2 => binaryOp(_ * _)
+          }
+
+          (Brain(newMemory, ip + 4), ())
+        }
       }
-    }
   }
 
   def eval(initialMemory: Memory): Int = {
