@@ -53,35 +53,24 @@ object Day2 extends Day {
   }
 
   def eval(initialMemory: Memory): Int = {
-    // TODO: don't be effectful. is repeatedly calling `runS` the way to go?
+    val firstBrain = Brain(initialMemory, 0)
 
-    var s = state.runS(Brain(initialMemory, 0))
+    def run(brain: Brain): Brain = state.runS(brain).value
+    lazy val brains: LazyList[Brain] = run(firstBrain) #:: brains.map(run)
 
-    while (!s.value.halted) {
-      s = state.runS(s.value)
-    }
-
-    s.value.memory.head
+    brains.takeWhile(!_.halted).last.memory.head
   }
 
   def part1: Int = eval(part1Code)
 
-  def part2: Option[Int] = {
+  def part2: Int = {
     // you know what ... let's just brute force this
-    //
-    // TODO: find a way to do this without effects
 
-    var result: Option[Int] = None
-
-    for {
+    val solutions = for {
       noun <- 0 to 99
-      verb <- 0 to 99
-    } {
-      if (eval(generateMemory(noun, verb)) == 19690720) {
-        result = Some(100 * noun + verb)
-      }
-    }
+      verb <- 0 to 99 if eval(generateMemory(noun, verb)) == 19690720
+    } yield 100 * noun + verb
 
-    result
+    solutions.head
   }
 }
